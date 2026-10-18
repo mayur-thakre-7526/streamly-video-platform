@@ -2,6 +2,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import fs from "fs";
 
 const registerUser = asyncHandler(async (req, res) => {
   // get user details from frontend
@@ -23,7 +25,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields are required");
   }
 
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
@@ -33,12 +35,24 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Local server par jo file upload huyi hai uska local path le rahe hai taki validation kar sakte files ka!
 
-  const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  // const avatarLocalPath = req.files?.avatar[0]?.path;
+  // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+//   console.log("Body:", req.body);
+// console.log("Files:", req.files);
+
+const avatarLocalPath = req.files?.avatar?.[0]?.path;
+const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+// console.log("Avatar path:", avatarLocalPath);
+// console.log("Cover image path:", coverImageLocalPath);
+
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
   }
+
+  // console.log("Avatar exists:", fs.existsSync(avatarLocalPath));
 
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
@@ -47,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Avatar file is required");
   }
 
-  const user = User.create({
+  const user = await User.create({
     username: username.toLowerCase(),
     fullName,
     email,
@@ -68,7 +82,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(200, create, "User registered successfully"));
+    .json(new ApiResponse(200, createdUser, "User registered successfully"));
 });
 
 export { registerUser };
