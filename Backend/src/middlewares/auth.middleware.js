@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model";
-import { asyncHandler } from "../utils/asyncHandler";
-import { ApiError } from "../utils/ApiError";
+import { User } from "../models/user.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 
-export const verifyJWT = asyncHandler(async (req, res, next) => {
+// if res is not using in the code so write it - "_"
+export const verifyJWT = asyncHandler(async (req, _, next) => {
   try {
     // take token from the req, & for mobile app, take token from header
     const token =
@@ -25,10 +26,11 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     if (!user) {
       // Frontend Disscustion will happend on this
       throw new ApiError(401, "Invalid Access Token");
-
-      req.user = user;
-      next();
     }
+
+    req.user = user;
+    next();
+    
   } catch (error) {
     throw new ApiError(401, error?.message || "Invalid access token");
   }

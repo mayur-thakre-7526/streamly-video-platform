@@ -9,7 +9,7 @@ import { ref } from "process";
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
-    const accessToken = user.generateAccesssToken();
+    const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
     user.refreshToken = refreshToken;
@@ -114,12 +114,12 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const { username, email, password } = req.body;
 
-  if (!username || !email) {
+  if (!username && !email) {
     throw new ApiError(400, "username or email is required!");
   }
 
   const user = await User.findOne({
-    $or: [{ username }, { password }],
+    $or: [{ username }, { email }],
   });
 
   if (!user) {
@@ -137,8 +137,7 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password",
-    "refreshToken"
+    "-password -refreshToken"
   );
 
   const options = {
@@ -174,7 +173,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       },
     },
     {
-      new: true, // (Optional) => new updated response mile undefined wala, old wala nhi milna chahite so that,
+      new: true, // (Options) => new updated response mile undefined wala, old wala nhi milna chahite so that,
     }
   );
 
